@@ -13,20 +13,23 @@ const isFileExist = async (filePath) => {
   }
 }
 
-export const saveStorageValue = async (key, value) => {
+export const saveStorageValues = async (values) => {
   let data = {}
   if (await isFileExist(filePath)) {
     const file = await promises.readFile(filePath);
     data = JSON.parse(file);
   }
-  data[key] = value
+  data = {
+    ...data,
+    ...values,
+  }
   await promises.writeFile(filePath, JSON.stringify(data, null, 2));
 }
 
-export const getStorageValue = async (key) => {
+export const getStorageValues = async () => {
   if (isFileExist(filePath)) {
     const file = await promises.readFile(filePath);
-    return JSON.parse(file)[key]
+    return JSON.parse(file);
   }
   return undefined;
 }

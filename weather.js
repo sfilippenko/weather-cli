@@ -1,29 +1,36 @@
 #!/usr/bin/env node
 import parser from 'yargs-parser';
 import {logHelp, logSuccess, logError} from './services/log.js'
-import {saveStorageValue} from "./services/storage.js";
+import {saveStorageValues} from "./services/storage.js";
+import {getWeather} from "./services/api.js";
 
 const saveToken = async (token) => {
   try {
-    await saveStorageValue('token', token);
+    await saveStorageValues({token});
     logSuccess('Токен сохранен')
   } catch (error) {
     logError(error.message)
   }
 }
 
-const init = () => {
-  const args = parser(process.argv.slice(2));
-  if (args.h || args.help) {
+const init = async () => {
+  const {h, help, c: city, t: token} = parser(process.argv.slice(2));
+  if (h || help) {
     logHelp();
+    return;
   }
-  if (args.c) {
-    saveStorageValue('city', args.c)
+  if (city) {
+    await saveStorageValues({city});
   }
-  if (args.t) {
-    saveToken(args.t)
+  if (token) {
+    await saveToken(token)
   }
-  // Weather
+  try {
+    const weather = await getWeather();
+    logSuccess(`${weather.name}: ${weather.main.temp} градусов, ${weather.weather[0]?.description}`);
+  } catch (error) {
+    logError(error.response?.data?.message || error.message);
+  }
 }
 
 init();
